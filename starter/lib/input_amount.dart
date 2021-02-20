@@ -36,41 +36,66 @@
 // DEALINGS IN THE SOFTWARE.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-void main() {
-  runApp(TippiHedrunSavesTheDay());
+class InputAmount extends StatefulWidget {
+  final double value;
+  final String label;
+  final String trailingLabel;
+  final Function onChanged;
+
+  const InputAmount({Key key, this.value, this.label, this.trailingLabel, this.onChanged}) : super(key: key);
+
+  @override
+  _InputAmountState createState() => _InputAmountState();
 }
 
-class TippiHedrunSavesTheDay extends StatelessWidget {
+class _InputAmountState extends State<InputAmount> {
+  TextEditingController controller;
+
+  @override
+  void initState() {
+    super.initState();
+
+    controller = TextEditingController(
+      text: widget.value.toString().replaceAll(RegExp(r'\.0*$'), '') // if fractional part zero, remove it and decimal point
+    );
+  }
+
+  @override
+  void dispose() {
+    controller?.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Tippi Hedrun Saves the Day',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      home: TipCalculatorPage(),
+    return Row(
+      children: [
+        Text(widget.label + ':'),
+        SizedBox(width: 16),
+        Expanded(
+          child: TextField(
+            controller: controller,
+            keyboardType: TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [
+              DecimalInputFormatter()
+            ],
+            onChanged: (text) => widget.onChanged?.call(double.parse(text))
+          ),
+        ),
+        SizedBox(width: 16),
+        Text(widget.trailingLabel)
+      ]
     );
   }
 }
 
-class TipCalculatorPage extends StatelessWidget {
-  TipCalculatorPage({Key key}) : super(key: key);
-
+class DecimalInputFormatter extends TextInputFormatter {
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Tip Calculator'),
-      ),
-      body: Container(
-        padding: const EdgeInsets.all(16),
-        alignment: Alignment.center,
-        child: Text(
-          'Your bill is 100 dollars.\nA tip of 15% is 15 dollars\nmaking the total 115 dollars',
-        ),
-      ),
-    );
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    if (newValue.text == '') return newValue;
+    if (double.tryParse(newValue.text) is double) return newValue;
+    return oldValue;
   }
 }
