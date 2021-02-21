@@ -81,7 +81,7 @@ class _InputAmountState extends State<InputAmount> {
             inputFormatters: [
               DecimalInputFormatter()
             ],
-            onChanged: (text) => widget.onChanged?.call(double.parse(text))
+            onChanged: (text) => widget.onChanged?.call(double.tryParse(text) ?? 0)
           ),
         ),
         SizedBox(width: 16),
